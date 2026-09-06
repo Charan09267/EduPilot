@@ -1,0 +1,86 @@
+# ==============================
+# Java / Maven
+# ==============================
+
+target/
+*.class
+*.jar
+*.war
+*.ear
+
+# Maven
+.mvn/
+mvnw
+mvnw.cmd
+
+
+# ==============================
+# IntelliJ IDEA
+# ==============================
+
+.idea/
+*.iml
+*.iws
+*.ipr
+
+
+# ==============================
+# Eclipse
+# ==============================
+
+.classpath
+.project
+.settings/
+.factorypath
+
+
+# ==============================
+# VS Code
+# ==============================
+
+.vscode/
+
+
+# ==============================
+# Spring Boot
+# ==============================
+
+spring.log
+*.log
+
+
+# ==============================
+# Environment / Secrets
+# ==============================
+
+.env
+.env.*
+!.env.example
+
+application-local.yml
+application-local.yaml
+
+application-secret.yml
+application-secret.yaml
+
+application.yml
+application.properties
+
+
+# ==============================
+# OS generated files
+# ==============================
+
+.DS_Store
+Thumbs.db
+
+
+# ==============================
+# Temporary files
+# ==============================
+
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
