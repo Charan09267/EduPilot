@@ -1,5 +1,7 @@
 package net.edupilot.userservice.controller;
 
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import net.edupilot.userservice.dto.LoginRequest;
@@ -7,6 +9,7 @@ import net.edupilot.userservice.dto.LoginResponse;
 import net.edupilot.userservice.dto.RegisterRequest;
 import net.edupilot.userservice.dto.UserResponse;
 import net.edupilot.userservice.service.UserService;
+import org.apache.http.impl.bootstrap.HttpServer;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -33,12 +36,21 @@ public class UserController {
 
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(
-            @Valid @RequestBody LoginRequest request
+            @Valid @RequestBody LoginRequest request,
+            HttpServletResponse response
     ) {
 
-        LoginResponse response = userService.login(request);
+        LoginResponse loginResponse = userService.login(request);
 
-        return ResponseEntity.ok(response);
+        Cookie cookie = new Cookie("jwt" , loginResponse.getToken() );
+        cookie.setHttpOnly(true);
+        cookie.setSecure(false);
+        cookie.setPath("/");
+        cookie.setMaxAge(60*60*10);
+
+        response.addCookie(cookie);
+
+        return ResponseEntity.ok(loginResponse);
     }
 
     @GetMapping("/me")
