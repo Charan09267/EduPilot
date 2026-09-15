@@ -1,4 +1,4 @@
-package net.edupilot.mockinterviewservice.service;
+package net.edupilot.mockinterviewservice.service.interfaces;
 
 import net.edupilot.mockinterviewservice.dto.CreateInterviewRequest;
 import net.edupilot.mockinterviewservice.dto.InterviewResponse;

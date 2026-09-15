@@ -3,9 +3,12 @@ package net.edupilot.mockinterviewservice.service;
 
 import net.edupilot.mockinterviewservice.dto.CreateInterviewRequest;
 import net.edupilot.mockinterviewservice.dto.InterviewResponse;
+import net.edupilot.mockinterviewservice.dto.redis.InterviewContext;
 import net.edupilot.mockinterviewservice.entity.Interview;
 import net.edupilot.mockinterviewservice.enums.InterviewStatus;
 import net.edupilot.mockinterviewservice.repository.InterviewRepository;
+import net.edupilot.mockinterviewservice.service.interfaces.InterviewRedisService;
+import net.edupilot.mockinterviewservice.service.interfaces.InterviewService;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -14,9 +17,14 @@ import java.time.LocalDateTime;
 public class InterviewServiceImpl implements InterviewService {
 
     private final InterviewRepository interviewRepository;
+    private final InterviewRedisService interviewRedisService;
 
-    public InterviewServiceImpl(InterviewRepository interviewRepository) {
+    public InterviewServiceImpl(
+            InterviewRepository interviewRepository,
+            InterviewRedisService interviewRedisService) {
+
         this.interviewRepository = interviewRepository;
+        this.interviewRedisService = interviewRedisService;
     }
 
     @Override
@@ -82,6 +90,49 @@ public class InterviewServiceImpl implements InterviewService {
 
     @Override
     public InterviewResponse startInterview(Long interviewId) {
-        return null;
+
+        Interview interview = interviewRepository.findById(interviewId)
+                .orElseThrow(() ->
+                        new RuntimeException("Interview not found"));
+
+        if (interview.getStatus() != InterviewStatus.CREATED) {
+            throw new RuntimeException(
+                    "Interview cannot be started in current state"
+            );
+        }
+
+        LocalDateTime startedAt = LocalDateTime.now();
+
+        interview.setStatus(InterviewStatus.IN_PROGRESS);
+        interview.setStartedAt(startedAt);
+
+        Interview savedInterview = interviewRepository.save(interview);
+
+        InterviewContext context = new InterviewContext();
+
+        context.setInterviewId(savedInterview.getId());
+        context.setUserId(savedInterview.getUserId());
+        context.setType(savedInterview.getType());
+
+        context.setTargetRole(savedInterview.getTargetRole());
+        context.setExperienceLevel(savedInterview.getExperienceLevel());
+        context.setInterviewInstructions(
+                savedInterview.getInterviewInstructions()
+        );
+
+        context.setDurationMinutes(
+                savedInterview.getDurationMinutes()
+        );
+
+        context.setQuestionLimit(
+                savedInterview.getQuestionLimit()
+        );
+
+        context.setQuestionsAsked(0);
+        context.setStartedAt(startedAt);
+
+        interviewRedisService.saveContext(context);
+
+        return mapToResponse(savedInterview);
     }
 }
