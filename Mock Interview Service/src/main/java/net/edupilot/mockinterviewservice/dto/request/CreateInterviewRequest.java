@@ -1,34 +1,40 @@
-package net.edupilot.mockinterviewservice.dto;
+package net.edupilot.mockinterviewservice.dto.request;
 
 
-
+import jakarta.validation.constraints.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.RequiredArgsConstructor;
 import lombok.Setter;
-import net.edupilot.mockinterviewservice.enums.InterviewStatus;
 import net.edupilot.mockinterviewservice.enums.InterviewType;
 
-import java.time.LocalDateTime;
-
-@Getter
-@Setter
+@Getter @Setter
 @NoArgsConstructor
-public class InterviewResponse {
+public class CreateInterviewRequest {
 
-    private Long id;
+    @NotNull
     private InterviewType type;
-    private InterviewStatus status;
 
+    @NotBlank
     private String targetRole;
+
+    @NotBlank
     private String experienceLevel;
 
+    @NotNull
+    @Min(5)
+    @Max(120)
     private Integer durationMinutes;
+
+    @NotNull
+    @Min(1)
+    @Max(50)
     private Integer questionLimit;
 
+    private String interviewInstructions;
     private String programmingLanguage;
+
     private String difficulty;
+
     private String topic;
 
-    private LocalDateTime createdAt;
 }

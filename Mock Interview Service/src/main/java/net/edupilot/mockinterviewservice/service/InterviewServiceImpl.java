@@ -1,9 +1,11 @@
 package net.edupilot.mockinterviewservice.service;
 
 
-import net.edupilot.mockinterviewservice.dto.CreateInterviewRequest;
-import net.edupilot.mockinterviewservice.dto.InterviewResponse;
+import net.edupilot.mockinterviewservice.dto.request.CreateInterviewRequest;
+import net.edupilot.mockinterviewservice.dto.response.InterviewResponse;
+import net.edupilot.mockinterviewservice.dto.response.InterviewSummaryResponse;
 import net.edupilot.mockinterviewservice.dto.redis.InterviewContext;
+import net.edupilot.mockinterviewservice.dto.response.StartInterviewResponse;
 import net.edupilot.mockinterviewservice.entity.Interview;
 import net.edupilot.mockinterviewservice.enums.InterviewStatus;
 import net.edupilot.mockinterviewservice.repository.InterviewRepository;
@@ -12,6 +14,7 @@ import net.edupilot.mockinterviewservice.service.interfaces.InterviewService;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 public class InterviewServiceImpl implements InterviewService {
@@ -89,7 +92,7 @@ public class InterviewServiceImpl implements InterviewService {
     }
 
     @Override
-    public InterviewResponse startInterview(Long interviewId) {
+    public StartInterviewResponse startInterview(Long interviewId) {
 
         Interview interview = interviewRepository.findById(interviewId)
                 .orElseThrow(() ->
@@ -108,6 +111,9 @@ public class InterviewServiceImpl implements InterviewService {
 
         Interview savedInterview = interviewRepository.save(interview);
 
+        String firstQuestion =
+                "Can you introduce yourself and explain your technical background?";
+
         InterviewContext context = new InterviewContext();
 
         context.setInterviewId(savedInterview.getId());
@@ -120,19 +126,54 @@ public class InterviewServiceImpl implements InterviewService {
                 savedInterview.getInterviewInstructions()
         );
 
-        context.setDurationMinutes(
-                savedInterview.getDurationMinutes()
-        );
+        context.setDurationMinutes(savedInterview.getDurationMinutes());
+        context.setQuestionLimit(savedInterview.getQuestionLimit());
 
-        context.setQuestionLimit(
-                savedInterview.getQuestionLimit()
-        );
-
-        context.setQuestionsAsked(0);
+        context.setQuestionsAsked(1);
+        context.setCurrentQuestion(firstQuestion);
+        context.getQuestions().add(firstQuestion);
         context.setStartedAt(startedAt);
 
         interviewRedisService.saveContext(context);
 
-        return mapToResponse(savedInterview);
+        StartInterviewResponse response = new StartInterviewResponse();
+
+        response.setInterviewId(savedInterview.getId());
+        response.setStatus(savedInterview.getStatus());
+        response.setFirstQuestion(firstQuestion);
+        response.setQuestionsAsked(context.getQuestionsAsked());
+        response.setQuestionLimit(savedInterview.getQuestionLimit());
+
+        return response;
+    }
+
+
+    @Override
+    public List<InterviewSummaryResponse> getMyInterviews() {
+
+        // Temporary user ID until JWT integration
+        Long userId = 1L;
+
+        return interviewRepository.findAllByUserId(userId)
+                .stream()
+                .map(this::mapToSummaryResponse)
+                .toList();
+    }
+
+    private InterviewSummaryResponse mapToSummaryResponse(
+            Interview interview) {
+
+        InterviewSummaryResponse response =
+                new InterviewSummaryResponse();
+
+        response.setId(interview.getId());
+        response.setType(interview.getType());
+        response.setStatus(interview.getStatus());
+        response.setTargetRole(interview.getTargetRole());
+        response.setDurationMinutes(interview.getDurationMinutes());
+        response.setQuestionLimit(interview.getQuestionLimit());
+        response.setCreatedAt(interview.getCreatedAt());
+
+        return response;
     }
 }
