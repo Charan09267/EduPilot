@@ -1,9 +1,8 @@
 package net.edupilot.mockinterviewservice.service.interfaces;
 
 import net.edupilot.mockinterviewservice.dto.request.CreateInterviewRequest;
-import net.edupilot.mockinterviewservice.dto.response.InterviewResponse;
-import net.edupilot.mockinterviewservice.dto.response.InterviewSummaryResponse;
-import net.edupilot.mockinterviewservice.dto.response.StartInterviewResponse;
+import net.edupilot.mockinterviewservice.dto.request.SubmitAnswerRequest;
+import net.edupilot.mockinterviewservice.dto.response.*;
 
 import java.util.List;
 
@@ -15,4 +14,11 @@ public interface InterviewService {
     StartInterviewResponse startInterview(Long interviewId);
 
     List<InterviewSummaryResponse> getMyInterviews();
+
+    SubmitAnswerResponse submitAnswer(
+            Long interviewId,
+            SubmitAnswerRequest request
+    );
+
+    InterviewResultResponse getInterviewResult(Long interviewId);
 }

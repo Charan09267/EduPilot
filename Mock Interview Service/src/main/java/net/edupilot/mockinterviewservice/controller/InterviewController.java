@@ -2,9 +2,8 @@ package net.edupilot.mockinterviewservice.controller;
 
 import jakarta.validation.Valid;
 import net.edupilot.mockinterviewservice.dto.request.CreateInterviewRequest;
-import net.edupilot.mockinterviewservice.dto.response.InterviewResponse;
-import net.edupilot.mockinterviewservice.dto.response.InterviewSummaryResponse;
-import net.edupilot.mockinterviewservice.dto.response.StartInterviewResponse;
+import net.edupilot.mockinterviewservice.dto.request.SubmitAnswerRequest;
+import net.edupilot.mockinterviewservice.dto.response.*;
 import net.edupilot.mockinterviewservice.service.interfaces.InterviewService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -56,6 +55,27 @@ public class InterviewController {
 
         return ResponseEntity.ok(
                 interviewService.getMyInterviews()
+        );
+    }
+
+    @PostMapping("/{interviewId}/answer")
+    public ResponseEntity<SubmitAnswerResponse> submitAnswer(
+            @PathVariable Long interviewId,
+            @Valid @RequestBody SubmitAnswerRequest request
+    ) {
+
+        return ResponseEntity.ok(
+                interviewService.submitAnswer(interviewId, request)
+        );
+    }
+
+    @GetMapping("/{interviewId}/result")
+    public ResponseEntity<InterviewResultResponse> getInterviewResult(
+            @PathVariable Long interviewId
+    ) {
+
+        return ResponseEntity.ok(
+                interviewService.getInterviewResult(interviewId)
         );
     }
 }

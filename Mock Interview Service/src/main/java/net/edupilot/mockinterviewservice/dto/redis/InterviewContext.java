@@ -2,7 +2,6 @@ package net.edupilot.mockinterviewservice.dto.redis;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import net.edupilot.mockinterviewservice.enums.InterviewType;
 
@@ -32,8 +31,7 @@ public class InterviewContext implements Serializable {
 
     private String currentQuestion;
 
-    private List<String> questions = new ArrayList<>();
-    private List<String> answers = new ArrayList<>();
+    private List<ConversationTurn> conversationHistory = new ArrayList<>();
 
     private LocalDateTime startedAt;
 

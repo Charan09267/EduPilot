@@ -1,14 +1,17 @@
 package net.edupilot.mockinterviewservice.service;
 
 
+import net.edupilot.mockinterviewservice.dto.redis.ConversationTurn;
 import net.edupilot.mockinterviewservice.dto.request.CreateInterviewRequest;
-import net.edupilot.mockinterviewservice.dto.response.InterviewResponse;
-import net.edupilot.mockinterviewservice.dto.response.InterviewSummaryResponse;
+import net.edupilot.mockinterviewservice.dto.request.SubmitAnswerRequest;
+import net.edupilot.mockinterviewservice.dto.response.*;
 import net.edupilot.mockinterviewservice.dto.redis.InterviewContext;
-import net.edupilot.mockinterviewservice.dto.response.StartInterviewResponse;
 import net.edupilot.mockinterviewservice.entity.Interview;
+import net.edupilot.mockinterviewservice.entity.InterviewResult;
 import net.edupilot.mockinterviewservice.enums.InterviewStatus;
+import net.edupilot.mockinterviewservice.enums.InterviewType;
 import net.edupilot.mockinterviewservice.repository.InterviewRepository;
+import net.edupilot.mockinterviewservice.repository.InterviewResultRepository;
 import net.edupilot.mockinterviewservice.service.interfaces.InterviewRedisService;
 import net.edupilot.mockinterviewservice.service.interfaces.InterviewService;
 import org.springframework.stereotype.Service;
@@ -21,13 +24,16 @@ public class InterviewServiceImpl implements InterviewService {
 
     private final InterviewRepository interviewRepository;
     private final InterviewRedisService interviewRedisService;
+    private final InterviewResultRepository interviewResultRepository;
 
     public InterviewServiceImpl(
             InterviewRepository interviewRepository,
-            InterviewRedisService interviewRedisService) {
+            InterviewRedisService interviewRedisService,
+            InterviewResultRepository interviewResultRepository) {
 
         this.interviewRepository = interviewRepository;
         this.interviewRedisService = interviewRedisService;
+        this.interviewResultRepository = interviewResultRepository;
     }
 
     @Override
@@ -131,8 +137,16 @@ public class InterviewServiceImpl implements InterviewService {
 
         context.setQuestionsAsked(1);
         context.setCurrentQuestion(firstQuestion);
-        context.getQuestions().add(firstQuestion);
-        context.setStartedAt(startedAt);
+        context.setStartedAt(LocalDateTime.now());
+
+        ConversationTurn firstTurn = new ConversationTurn();
+
+        firstTurn.setQuestion(firstQuestion);
+        firstTurn.setAnswer(null);
+        firstTurn.setQuestionNumber(1);
+        firstTurn.setTimestamp(LocalDateTime.now());
+
+        context.getConversationHistory().add(firstTurn);
 
         interviewRedisService.saveContext(context);
 
@@ -173,6 +187,134 @@ public class InterviewServiceImpl implements InterviewService {
         response.setDurationMinutes(interview.getDurationMinutes());
         response.setQuestionLimit(interview.getQuestionLimit());
         response.setCreatedAt(interview.getCreatedAt());
+
+        return response;
+    }
+
+    @Override
+    public SubmitAnswerResponse submitAnswer(
+            Long interviewId,
+            SubmitAnswerRequest request
+    ) {
+
+        InterviewContext context =
+                interviewRedisService.getContext(interviewId);
+
+        if (context == null) {
+            throw new RuntimeException("Interview session not found or expired");
+        }
+
+        List<ConversationTurn> history =
+                context.getConversationHistory();
+
+        if (history.isEmpty()) {
+            throw new RuntimeException("Interview conversation is empty");
+        }
+
+        ConversationTurn currentTurn =
+                history.get(history.size() - 1);
+
+        if (currentTurn.getAnswer() != null) {
+            throw new RuntimeException("Current question has already been answered");
+        }
+
+        // Save answer
+        currentTurn.setAnswer(request.getAnswer());
+
+
+        // Check whether this was the final question
+        if (context.getQuestionsAsked() >= context.getQuestionLimit()) {
+
+            completeInterview(interviewId, context);
+
+            SubmitAnswerResponse response = new SubmitAnswerResponse();
+
+            response.setInterviewId(interviewId);
+            response.setQuestionsAsked(context.getQuestionsAsked());
+            response.setQuestionLimit(context.getQuestionLimit());
+            response.setInterviewCompleted(true);
+
+            interviewRedisService.saveContext(context);
+
+            return response;
+        }
+
+
+        // Generate next question temporarily
+        String nextQuestion =
+                generateTemporaryQuestion(context.getQuestionsAsked());
+
+        int nextQuestionNumber =
+                context.getQuestionsAsked() + 1;
+
+        ConversationTurn nextTurn = new ConversationTurn();
+
+        nextTurn.setQuestion(nextQuestion);
+        nextTurn.setAnswer(null);
+        nextTurn.setQuestionNumber(nextQuestionNumber);
+        nextTurn.setTimestamp(LocalDateTime.now());
+
+        history.add(nextTurn);
+
+        context.setQuestionsAsked(nextQuestionNumber);
+        context.setCurrentQuestion(nextQuestion);
+
+        interviewRedisService.saveContext(context);
+
+
+        SubmitAnswerResponse response =
+                new SubmitAnswerResponse();
+
+        response.setInterviewId(interviewId);
+        response.setNextQuestion(nextQuestion);
+        response.setQuestionsAsked(nextQuestionNumber);
+        response.setQuestionLimit(context.getQuestionLimit());
+        response.setInterviewCompleted(false);
+
+        return response;
+    }
+
+    private String generateTemporaryQuestion(Integer questionNumber) {
+
+        return switch (questionNumber) {
+            case 1 -> "What is your experience with Spring Boot?";
+            case 2 -> "Can you explain how you designed one of your backend projects?";
+            case 3 -> "What challenges have you faced while developing REST APIs?";
+            case 4 -> "How would you improve the scalability of a backend application?";
+            default -> "Can you explain one important technical decision you made in your projects?";
+        };
+    }
+
+    private void completeInterview(
+            Long interviewId,
+            InterviewContext context
+    ) {
+
+        Interview interview = interviewRepository
+                .findById(interviewId)
+                .orElseThrow(() ->
+                        new RuntimeException("Interview not found"));
+
+        interview.setStatus(InterviewStatus.EVALUATING);
+        interview.setEndedAt(LocalDateTime.now());
+
+        interviewRepository.save(interview);
+    }
+
+    @Override
+    public InterviewResultResponse getInterviewResult(Long interviewId) {
+
+        InterviewResult result = interviewResultRepository
+                .findByInterviewId(interviewId)
+                .orElseThrow(() ->
+                        new RuntimeException("Interview result not found"));
+
+        InterviewResultResponse response =
+                new InterviewResultResponse();
+
+        response.setInterviewId(result.getInterviewId());
+        response.setOverallScore(result.getOverallScore());
+        response.setEvaluatedAt(result.getEvaluatedAt());
 
         return response;
     }
