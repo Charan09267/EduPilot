@@ -8,7 +8,7 @@ CREATE TABLE interview_results(
 
     CONSTRAINT fk_interview_result_interview
                               FOREIGN KEY (interview_id)
-                              REFERENCES interview(id),
+                              REFERENCES interviews(id),
 
     CONSTRAINT uk_interview_result_interview
                               UNIQUE(interview_id)
