@@ -21,4 +21,6 @@ public interface InterviewService {
     );
 
     InterviewResultResponse getInterviewResult(Long interviewId);
+
+    void evaluateInterview(Long interviewId);
 }

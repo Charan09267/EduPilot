@@ -78,4 +78,14 @@ public class InterviewController {
                 interviewService.getInterviewResult(interviewId)
         );
     }
+
+    @PostMapping("/{interviewId}/evaluate")
+    public ResponseEntity<Void> evaluateInterview(
+            @PathVariable Long interviewId
+    ) {
+
+        interviewService.evaluateInterview(interviewId);
+
+        return ResponseEntity.noContent().build();
+    }
 }

@@ -1,6 +1,9 @@
 package net.edupilot.mockinterviewservice.service;
 
 
+import net.edupilot.mockinterviewservice.client.AiServiceClient;
+import net.edupilot.mockinterviewservice.dto.ai.EvaluationRequest;
+import net.edupilot.mockinterviewservice.dto.ai.EvaluationResponse;
 import net.edupilot.mockinterviewservice.dto.redis.ConversationTurn;
 import net.edupilot.mockinterviewservice.dto.request.CreateInterviewRequest;
 import net.edupilot.mockinterviewservice.dto.request.SubmitAnswerRequest;
@@ -25,15 +28,18 @@ public class InterviewServiceImpl implements InterviewService {
     private final InterviewRepository interviewRepository;
     private final InterviewRedisService interviewRedisService;
     private final InterviewResultRepository interviewResultRepository;
+    private final AiServiceClient aiServiceClient;
 
     public InterviewServiceImpl(
             InterviewRepository interviewRepository,
             InterviewRedisService interviewRedisService,
-            InterviewResultRepository interviewResultRepository) {
+            InterviewResultRepository interviewResultRepository,
+            AiServiceClient aiServiceClient) {
 
         this.interviewRepository = interviewRepository;
         this.interviewRedisService = interviewRedisService;
         this.interviewResultRepository = interviewResultRepository;
+        this.aiServiceClient = aiServiceClient;
     }
 
     @Override
@@ -318,4 +324,71 @@ public class InterviewServiceImpl implements InterviewService {
 
         return response;
     }
+
+    @Override
+    public void evaluateInterview(Long interviewId) {
+
+        Interview interview = interviewRepository
+                .findById(interviewId)
+                .orElseThrow(() ->
+                        new RuntimeException("Interview not found"));
+
+        InterviewContext context =
+                interviewRedisService.getContext(interviewId);
+
+        if (context == null) {
+            throw new RuntimeException(
+                    "Interview session not found or expired"
+            );
+        }
+
+        if (interview.getStatus() != InterviewStatus.EVALUATING) {
+            throw new RuntimeException(
+                    "Interview is not ready for evaluation"
+            );
+        }
+
+        EvaluationRequest request = new EvaluationRequest();
+
+        request.setInterviewId(context.getInterviewId());
+        request.setTargetRole(context.getTargetRole());
+        request.setExperienceLevel(context.getExperienceLevel());
+        request.setInterviewInstructions(
+                context.getInterviewInstructions()
+        );
+        request.setQuestionLimit(context.getQuestionLimit());
+        request.setDurationMinutes(context.getDurationMinutes());
+        request.setConversationHistory(
+                context.getConversationHistory()
+        );
+
+        EvaluationResponse evaluation =
+                aiServiceClient.evaluateInterview(request);
+
+        if (evaluation == null ||
+                evaluation.getOverallScore() == null) {
+
+            throw new RuntimeException(
+                    "AI evaluation failed"
+            );
+        }
+
+        InterviewResult result = new InterviewResult();
+
+        result.setInterviewId(interviewId);
+        result.setOverallScore(
+                evaluation.getOverallScore()
+        );
+        result.setEvaluatedAt(LocalDateTime.now());
+
+        interviewResultRepository.save(result);
+
+        interview.setStatus(InterviewStatus.COMPLETED);
+
+        interviewRepository.save(interview);
+
+        interviewRedisService.deleteContext(interviewId);
+    }
+
+
 }

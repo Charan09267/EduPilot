@@ -1,5 +1,7 @@
 package net.edupilot.mockinterviewservice.client;
 
+import net.edupilot.mockinterviewservice.dto.ai.EvaluationRequest;
+import net.edupilot.mockinterviewservice.dto.ai.EvaluationResponse;
 import net.edupilot.mockinterviewservice.dto.request.IntialQuestionRequest;
 import net.edupilot.mockinterviewservice.dto.response.IntialQuestionResponse;
 import org.springframework.beans.factory.annotation.Value;
@@ -30,5 +32,19 @@ public class AiServiceClientImpl implements AiServiceClient {
                 .body(request)
                 .retrieve()
                 .body(IntialQuestionResponse.class);
+    }
+
+
+    @Override
+    public EvaluationResponse evaluateInterview(
+            EvaluationRequest request
+    ) {
+
+        return restClient
+                .post()
+                .uri(aiServiceUrl + "/ai/interviews/normal/evaluate")
+                .body(request)
+                .retrieve()
+                .body(EvaluationResponse.class);
     }
 }
