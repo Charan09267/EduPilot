@@ -6,7 +6,6 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class InterviewEvaluationPromptBuilder {
-
     public String buildPrompt(InterviewEvaluationRequest request) {
 
         StringBuilder prompt = new StringBuilder();
@@ -51,24 +50,17 @@ public class InterviewEvaluationPromptBuilder {
         }
 
         prompt.append("""
+                
+                Evaluate the candidate based on the information above.
 
-                Evaluate the complete interview.
+                Provide:
+                - Overall score from 0 to 10
+                - Overall feedback
+                - Key strengths
+                - Key weaknesses
+                - Specific suggestions for improvement
 
-                Return the evaluation in the following JSON format:
-
-                {
-                  "overallScore": number,
-                  "overallFeedback": "string",
-                  "strengths": ["string"],
-                  "weaknesses": ["string"],
-                  "suggestions": ["string"]
-                }
-
-                The overallScore must be between 0 and 10.
-
-                Return ONLY valid JSON.
-                Do not include markdown.
-                Do not include ```json.
+                Be concise, objective and technically accurate.
                 """);
 
         return prompt.toString();

@@ -1,23 +1,24 @@
 package net.edupilot.aiservice.service;
 
 import lombok.RequiredArgsConstructor;
-import net.edupilot.aiservice.dto.InterviewEvaluationRequest;
-import net.edupilot.aiservice.dto.InterviewEvaluationResponse;
+import net.edupilot.aiservice.dto.InterviewGenerationRequest;
+import net.edupilot.aiservice.dto.InterviewGenerationResponse;
 import net.edupilot.aiservice.exception.AiServiceException;
-import net.edupilot.aiservice.prompt.InterviewEvaluationPromptBuilder;
+import net.edupilot.aiservice.prompt.InterviewGenerationPromptBuilder;
 import org.springframework.ai.chat.client.ChatClient;
-import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.stereotype.Service;
+import tools.jackson.databind.ObjectMapper;
 
 @Service
 @RequiredArgsConstructor
-public class InterviewEvaluationService {
+public class InterviewGenerationService {
 
     private final ChatClient chatClient;
-    private final InterviewEvaluationPromptBuilder promptBuilder;
+    private final InterviewGenerationPromptBuilder promptBuilder;
+    private final ObjectMapper objectMapper;
 
-    public InterviewEvaluationResponse evaluateInterview(
-            InterviewEvaluationRequest request) {
+    public InterviewGenerationResponse generateQuestions(
+            InterviewGenerationRequest request) throws AiServiceException {
 
         try {
             String prompt = promptBuilder.buildPrompt(request);
@@ -26,11 +27,11 @@ public class InterviewEvaluationService {
                     .prompt()
                     .user(prompt)
                     .call()
-                    .entity(InterviewEvaluationResponse.class);
+                    .entity(InterviewGenerationResponse.class);
 
         } catch (Exception exception) {
             throw new AiServiceException(
-                    "Failed to evaluate interview",
+                    "Failed to generate interview questions",
                     exception
             );
         }
