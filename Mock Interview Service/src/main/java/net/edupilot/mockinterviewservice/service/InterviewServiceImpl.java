@@ -1,6 +1,7 @@
 package net.edupilot.mockinterviewservice.service;
 
 
+import lombok.RequiredArgsConstructor;
 import net.edupilot.mockinterviewservice.client.AiServiceClient;
 import net.edupilot.mockinterviewservice.dto.ai.EvaluationRequest;
 import net.edupilot.mockinterviewservice.dto.ai.EvaluationResponse;
@@ -23,24 +24,13 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class InterviewServiceImpl implements InterviewService {
 
     private final InterviewRepository interviewRepository;
     private final InterviewRedisService interviewRedisService;
     private final InterviewResultRepository interviewResultRepository;
     private final AiServiceClient aiServiceClient;
-
-    public InterviewServiceImpl(
-            InterviewRepository interviewRepository,
-            InterviewRedisService interviewRedisService,
-            InterviewResultRepository interviewResultRepository,
-            AiServiceClient aiServiceClient) {
-
-        this.interviewRepository = interviewRepository;
-        this.interviewRedisService = interviewRedisService;
-        this.interviewResultRepository = interviewResultRepository;
-        this.aiServiceClient = aiServiceClient;
-    }
 
     @Override
     public InterviewResponse createInterview(CreateInterviewRequest request) {
