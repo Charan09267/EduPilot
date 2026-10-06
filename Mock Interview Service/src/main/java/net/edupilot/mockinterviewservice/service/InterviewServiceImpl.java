@@ -7,6 +7,7 @@ import net.edupilot.mockinterviewservice.dto.ai.EvaluationRequest;
 import net.edupilot.mockinterviewservice.dto.ai.EvaluationResponse;
 import net.edupilot.mockinterviewservice.dto.redis.ConversationTurn;
 import net.edupilot.mockinterviewservice.dto.request.CreateInterviewRequest;
+import net.edupilot.mockinterviewservice.dto.request.IntialQuestionRequest;
 import net.edupilot.mockinterviewservice.dto.request.SubmitAnswerRequest;
 import net.edupilot.mockinterviewservice.dto.response.*;
 import net.edupilot.mockinterviewservice.dto.redis.InterviewContext;
@@ -113,9 +114,32 @@ public class InterviewServiceImpl implements InterviewService {
 
         Interview savedInterview = interviewRepository.save(interview);
 
-        String firstQuestion =
-                "Can you introduce yourself and explain your technical background?";
+        IntialQuestionRequest aiRequest =
+                new IntialQuestionRequest();
 
+        aiRequest.setTargetRole(interview.getTargetRole());
+        aiRequest.setExperienceLevel(interview.getExperienceLevel());
+        aiRequest.setInterviewInstructions(
+                interview.getInterviewInstructions()
+        );
+        aiRequest.setQuestionLimit(interview.getQuestionLimit());
+        aiRequest.setDurationMinutes(
+                interview.getDurationMinutes()
+        );
+
+        IntialQuestionResponse aiResponse =
+                aiServiceClient.generateInitialQuestion(aiRequest);
+
+        if (aiResponse == null ||
+                aiResponse.getQuestion() == null ||
+                aiResponse.getQuestion().isBlank()) {
+
+            throw new RuntimeException(
+                    "AI Service failed to generate initial question"
+            );
+        }
+
+        String firstQuestion = aiResponse.getQuestion();
         InterviewContext context = new InterviewContext();
 
         context.setInterviewId(savedInterview.getId());
