@@ -5,9 +5,11 @@ import lombok.RequiredArgsConstructor;
 import net.edupilot.mockinterviewservice.client.AiServiceClient;
 import net.edupilot.mockinterviewservice.dto.ai.EvaluationRequest;
 import net.edupilot.mockinterviewservice.dto.ai.EvaluationResponse;
+import net.edupilot.mockinterviewservice.dto.ai.NextQuestionResponse;
 import net.edupilot.mockinterviewservice.dto.redis.ConversationTurn;
 import net.edupilot.mockinterviewservice.dto.request.CreateInterviewRequest;
 import net.edupilot.mockinterviewservice.dto.request.IntialQuestionRequest;
+import net.edupilot.mockinterviewservice.dto.request.NextQuestionRequest;
 import net.edupilot.mockinterviewservice.dto.request.SubmitAnswerRequest;
 import net.edupilot.mockinterviewservice.dto.response.*;
 import net.edupilot.mockinterviewservice.dto.redis.InterviewContext;
@@ -260,9 +262,9 @@ public class InterviewServiceImpl implements InterviewService {
         }
 
 
-        // Generate next question temporarily
+        // Generate next question
         String nextQuestion =
-                generateTemporaryQuestion(context.getQuestionsAsked());
+                generateTemporaryQuestion(context);
 
         int nextQuestionNumber =
                 context.getQuestionsAsked() + 1;
@@ -294,15 +296,32 @@ public class InterviewServiceImpl implements InterviewService {
         return response;
     }
 
-    private String generateTemporaryQuestion(Integer questionNumber) {
+    private String generateTemporaryQuestion(InterviewContext context) {
 
-        return switch (questionNumber) {
-            case 1 -> "What is your experience with Spring Boot?";
-            case 2 -> "Can you explain how you designed one of your backend projects?";
-            case 3 -> "What challenges have you faced while developing REST APIs?";
-            case 4 -> "How would you improve the scalability of a backend application?";
-            default -> "Can you explain one important technical decision you made in your projects?";
-        };
+        NextQuestionRequest aiRequest = new NextQuestionRequest();
+
+        aiRequest.setTargetRole(context.getTargetRole());
+        aiRequest.setExperienceLevel(context.getExperienceLevel());
+        aiRequest.setInterviewInstructions(context.getInterviewInstructions());
+        aiRequest.setQuestionLimit(context.getQuestionLimit());
+        aiRequest.setQuestionsAsked(context.getQuestionsAsked());
+        aiRequest.setDurationMinutes(context.getDurationMinutes());
+        aiRequest.setConversationHistory(context.getConversationHistory());
+
+        NextQuestionResponse aiResponse =
+                aiServiceClient.generateNextQuestion(aiRequest);
+
+        String nextQuestion = aiResponse.getQuestion();
+
+        if (aiResponse == null
+                || aiResponse.getQuestion() == null
+                || aiResponse.getQuestion().isBlank()) {
+            throw new IllegalStateException(
+                    "AI Service returned an empty next question"
+            );
+        }
+
+        return aiResponse.getQuestion().trim();
     }
 
     private void completeInterview(

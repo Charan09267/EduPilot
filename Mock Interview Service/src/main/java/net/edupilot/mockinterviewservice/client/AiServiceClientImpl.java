@@ -2,7 +2,9 @@ package net.edupilot.mockinterviewservice.client;
 
 import net.edupilot.mockinterviewservice.dto.ai.EvaluationRequest;
 import net.edupilot.mockinterviewservice.dto.ai.EvaluationResponse;
+import net.edupilot.mockinterviewservice.dto.ai.NextQuestionResponse;
 import net.edupilot.mockinterviewservice.dto.request.IntialQuestionRequest;
+import net.edupilot.mockinterviewservice.dto.request.NextQuestionRequest;
 import net.edupilot.mockinterviewservice.dto.response.IntialQuestionResponse;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -46,5 +48,16 @@ public class AiServiceClientImpl implements AiServiceClient {
                 .body(request)
                 .retrieve()
                 .body(EvaluationResponse.class);
+    }
+
+    @Override
+    public NextQuestionResponse generateNextQuestion(
+            NextQuestionRequest request) {
+
+        return restClient.post()
+                .uri(aiServiceUrl + "/ai/interviews/normal/next-question")
+                .body(request)
+                .retrieve()
+                .body(NextQuestionResponse.class);
     }
 }
