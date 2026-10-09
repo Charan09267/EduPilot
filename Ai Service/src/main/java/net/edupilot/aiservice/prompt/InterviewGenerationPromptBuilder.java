@@ -1,6 +1,7 @@
 package net.edupilot.aiservice.prompt;
 
 import net.edupilot.aiservice.dto.InterviewGenerationRequest;
+import net.edupilot.aiservice.dto.NextQuestionRequest;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -100,6 +101,64 @@ public class InterviewGenerationPromptBuilder {
                 customPrompt,
                 request.getNumberOfQuestions(),
                 request.getNumberOfQuestions()
+        );
+    }
+
+    public String buildNextQuestionPrompt(NextQuestionRequest request) {
+
+        StringBuilder history = new StringBuilder();
+
+        request.getConversationHistory().forEach(turn -> {
+            history.append("\nQuestion ")
+                    .append(turn.getQuestionNumber())
+                    .append(": ")
+                    .append(turn.getQuestion())
+                    .append("\nCandidate's answer: ")
+                    .append(turn.getAnswer() == null
+                            ? "Not answered yet"
+                            : turn.getAnswer())
+                    .append("\n");
+        });
+
+        return """
+            You are an experienced technical interviewer.
+
+            INTERVIEW CONFIGURATION
+            Target role: %s
+            Experience level: %s
+            Interview instructions: %s
+            Total question limit: %d
+            Questions already asked: %d
+            Interview duration: %d minutes
+
+            CONVERSATION HISTORY
+            %s
+
+            YOUR TASK
+            Generate exactly ONE next interview question.
+
+            RULES
+            1. Base the next question on the candidate's previous answers.
+            2. Ask a relevant follow-up when the answer reveals a topic
+               that deserves deeper exploration.
+            3. Follow the interview instructions and target role.
+            4. Do not repeat a question already asked.
+            5. Adjust the difficulty to the candidate's experience level.
+            6. Ask a new relevant topic if the previous answer does not
+               provide a useful direction for a follow-up.
+            7. Do not answer the question yourself.
+            8. Do not provide feedback, explanations, greetings, or numbering.
+            9. Return only the next question.
+            """.formatted(
+                request.getTargetRole(),
+                request.getExperienceLevel(),
+                request.getInterviewInstructions() == null
+                        ? "No additional instructions"
+                        : request.getInterviewInstructions(),
+                request.getQuestionLimit(),
+                request.getQuestionsAsked(),
+                request.getDurationMinutes(),
+                history
         );
     }
 

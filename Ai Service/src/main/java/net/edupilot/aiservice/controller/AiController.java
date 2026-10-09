@@ -6,7 +6,8 @@ import net.edupilot.aiservice.dto.InterviewEvaluationResponse;
 import net.edupilot.aiservice.dto.InterviewGenerationRequest;
 import net.edupilot.aiservice.dto.InterviewGenerationResponse;
 import net.edupilot.aiservice.service.InterviewEvaluationService;
-import net.edupilot.aiservice.service.InterviewGenerationService;
+import net.edupilot.aiservice.service.InterviewServiceImpl;
+import net.edupilot.aiservice.service.InterviewServiceImpl;
 import net.edupilot.aiservice.service.OllamaService;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,11 +18,11 @@ import java.util.Map;
 public class AiController {
 
     private final InterviewEvaluationService evaluationService;
-    private final InterviewGenerationService generationService;
+    private final InterviewServiceImpl generationService;
 
     public AiController(
             InterviewEvaluationService evaluationService,
-            InterviewGenerationService generationService) {
+            InterviewServiceImpl generationService) {
 
         this.evaluationService = evaluationService;
         this.generationService = generationService;
@@ -34,10 +35,10 @@ public class AiController {
         return evaluationService.evaluateInterview(request);
     }
 
-    @PostMapping("/interviews/generate")
-    public InterviewGenerationResponse generateQuestions(
-            @Valid @RequestBody InterviewGenerationRequest request) {
-
-        return generationService.generateQuestions(request);
-    }
+//    @PostMapping("/interviews/generate")
+//    public InterviewGenerationResponse generateQuestions(
+//            @Valid @RequestBody InterviewGenerationRequest request) {
+//
+//        return generationService.generateQuestions(request);
+//    }
 }

@@ -1,6 +1,7 @@
 package net.edupilot.aiservice.prompt;
 
 import net.edupilot.aiservice.dto.InitialQuestionRequest;
+import net.edupilot.aiservice.dto.NextQuestionRequest;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -35,4 +36,7 @@ public class InitialQuestionPromptBuilder {
                 request.getDurationMinutes()
         );
     }
+
+
+
 }

@@ -3,6 +3,8 @@ package net.edupilot.aiservice.service;
 import lombok.RequiredArgsConstructor;
 import net.edupilot.aiservice.dto.InitialQuestionRequest;
 import net.edupilot.aiservice.dto.InitialQuestionResponse;
+import net.edupilot.aiservice.dto.NextQuestionRequest;
+import net.edupilot.aiservice.dto.NextQuestionResponse;
 import net.edupilot.aiservice.exception.AiServiceException;
 import net.edupilot.aiservice.prompt.InitialQuestionPromptBuilder;
 import org.springframework.ai.chat.client.ChatClient;
@@ -32,4 +34,6 @@ public class InitialQuestionService {
                     "Failed to generate initial interview question", e);
         }
     }
+
+
 }
