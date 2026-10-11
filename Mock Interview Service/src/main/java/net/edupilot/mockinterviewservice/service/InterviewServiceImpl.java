@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import net.edupilot.mockinterviewservice.client.AiServiceClient;
 import net.edupilot.mockinterviewservice.dto.ai.EvaluationRequest;
 import net.edupilot.mockinterviewservice.dto.ai.EvaluationResponse;
+import net.edupilot.mockinterviewservice.dto.ai.InterviewQuestionAnswer;
 import net.edupilot.mockinterviewservice.dto.ai.NextQuestionResponse;
 import net.edupilot.mockinterviewservice.dto.redis.ConversationTurn;
 import net.edupilot.mockinterviewservice.dto.request.CreateInterviewRequest;
@@ -358,11 +359,11 @@ public class InterviewServiceImpl implements InterviewService {
         return response;
     }
 
+
     @Override
     public void evaluateInterview(Long interviewId) {
 
-        Interview interview = interviewRepository
-                .findById(interviewId)
+        Interview interview = interviewRepository.findById(interviewId)
                 .orElseThrow(() ->
                         new RuntimeException("Interview not found"));
 
@@ -371,53 +372,62 @@ public class InterviewServiceImpl implements InterviewService {
 
         if (context == null) {
             throw new RuntimeException(
-                    "Interview session not found or expired"
-            );
+                    "Interview session not found or expired");
         }
 
         if (interview.getStatus() != InterviewStatus.EVALUATING) {
             throw new RuntimeException(
-                    "Interview is not ready for evaluation"
-            );
+                    "Interview is not ready for evaluation");
+        }
+
+        // Convert conversation history into completed Q&A pairs.
+        List<InterviewQuestionAnswer> questions =
+                context.getConversationHistory()
+                        .stream()
+                        .filter(turn ->
+                                turn.getQuestion() != null
+                                        && !turn.getQuestion().isBlank()
+                                        && turn.getAnswer() != null
+                                        && !turn.getAnswer().isBlank())
+                        .map(turn -> {
+                            InterviewQuestionAnswer qa =
+                                    new InterviewQuestionAnswer();
+
+                            qa.setQuestion(turn.getQuestion());
+                            qa.setAnswer(turn.getAnswer());
+
+                            return qa;
+                        })
+                        .toList();
+
+        if (questions.isEmpty()) {
+            throw new RuntimeException(
+                    "No completed question-answer pairs found");
         }
 
         EvaluationRequest request = new EvaluationRequest();
 
-        request.setInterviewId(context.getInterviewId());
-        request.setTargetRole(context.getTargetRole());
-        request.setExperienceLevel(context.getExperienceLevel());
-        request.setInterviewInstructions(
-                context.getInterviewInstructions()
-        );
-        request.setQuestionLimit(context.getQuestionLimit());
-        request.setDurationMinutes(context.getDurationMinutes());
-        request.setConversationHistory(
-                context.getConversationHistory()
-        );
+        request.setInterviewType("NORMAL");
+        request.setRole(context.getTargetRole());
+        request.setTopic(context.getInterviewInstructions());
+        request.setQuestions(questions);
 
         EvaluationResponse evaluation =
                 aiServiceClient.evaluateInterview(request);
 
         if (evaluation == null ||
                 evaluation.getOverallScore() == null) {
-
-            throw new RuntimeException(
-                    "AI evaluation failed"
-            );
+            throw new RuntimeException("AI evaluation failed");
         }
 
         InterviewResult result = new InterviewResult();
-
         result.setInterviewId(interviewId);
-        result.setOverallScore(
-                evaluation.getOverallScore()
-        );
+        result.setOverallScore(evaluation.getOverallScore());
         result.setEvaluatedAt(LocalDateTime.now());
 
         interviewResultRepository.save(result);
 
         interview.setStatus(InterviewStatus.COMPLETED);
-
         interviewRepository.save(interview);
 
         interviewRedisService.deleteContext(interviewId);

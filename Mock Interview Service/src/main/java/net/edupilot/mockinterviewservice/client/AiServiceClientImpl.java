@@ -44,7 +44,7 @@ public class AiServiceClientImpl implements AiServiceClient {
 
         return restClient
                 .post()
-                .uri(aiServiceUrl + "/ai/interviews/normal/evaluate")
+                .uri(aiServiceUrl + "/ai/interviews/evaluate")
                 .body(request)
                 .retrieve()
                 .body(EvaluationResponse.class);

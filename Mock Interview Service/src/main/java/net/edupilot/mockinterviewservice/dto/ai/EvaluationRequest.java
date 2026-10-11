@@ -8,14 +8,11 @@ import java.util.List;
 @Data
 public class EvaluationRequest {
 
-    private Long interviewId;
+    private String interviewType;
 
-    private String targetRole;
-    private String experienceLevel;
-    private String interviewInstructions;
+    private String role;
 
-    private Integer questionLimit;
-    private Integer durationMinutes;
+    private String topic;
 
-    private List<ConversationTurn> conversationHistory;
+    private List<InterviewQuestionAnswer> questions;
 }
