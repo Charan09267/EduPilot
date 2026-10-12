@@ -1,4 +1,4 @@
-package net.edupilot.aiservice.dto;
+package net.edupilot.aiservice.dto.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

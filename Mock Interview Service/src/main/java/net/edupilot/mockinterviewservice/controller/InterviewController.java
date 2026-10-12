@@ -1,6 +1,7 @@
 package net.edupilot.mockinterviewservice.controller;
 
 import jakarta.validation.Valid;
+import net.edupilot.mockinterviewservice.dto.ai.EvaluationResponse;
 import net.edupilot.mockinterviewservice.dto.request.CreateInterviewRequest;
 import net.edupilot.mockinterviewservice.dto.request.SubmitAnswerRequest;
 import net.edupilot.mockinterviewservice.dto.response.*;
@@ -80,12 +81,12 @@ public class InterviewController {
     }
 
     @PostMapping("/{interviewId}/evaluate")
-    public ResponseEntity<Void> evaluateInterview(
+    public ResponseEntity<EvaluationResponse> evaluateInterview(
             @PathVariable Long interviewId
     ) {
 
-        interviewService.evaluateInterview(interviewId);
-
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(
+                interviewService.evaluateInterview(interviewId)
+        );
     }
 }

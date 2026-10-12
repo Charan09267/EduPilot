@@ -24,6 +24,7 @@ import net.edupilot.mockinterviewservice.service.interfaces.InterviewRedisServic
 import net.edupilot.mockinterviewservice.service.interfaces.InterviewService;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -361,7 +362,7 @@ public class InterviewServiceImpl implements InterviewService {
 
 
     @Override
-    public void evaluateInterview(Long interviewId) {
+    public EvaluationResponse evaluateInterview(Long interviewId) {
 
         Interview interview = interviewRepository.findById(interviewId)
                 .orElseThrow(() ->
@@ -380,7 +381,7 @@ public class InterviewServiceImpl implements InterviewService {
                     "Interview is not ready for evaluation");
         }
 
-        // Convert conversation history into completed Q&A pairs.
+        // Convert completed Redis conversation into Q&A pairs.
         List<InterviewQuestionAnswer> questions =
                 context.getConversationHistory()
                         .stream()
@@ -412,17 +413,27 @@ public class InterviewServiceImpl implements InterviewService {
         request.setTopic(context.getInterviewInstructions());
         request.setQuestions(questions);
 
+        // Obtain the complete report from the AI Service.
         EvaluationResponse evaluation =
                 aiServiceClient.evaluateInterview(request);
 
-        if (evaluation == null ||
-                evaluation.getOverallScore() == null) {
-            throw new RuntimeException("AI evaluation failed");
+        if (evaluation == null
+                || evaluation.getOverallScore() < 0
+                || evaluation.getOverallScore() > 10
+                || evaluation.getOverallFeedback() == null
+                || evaluation.getQuestionEvaluations() == null
+                || evaluation.getQuestionEvaluations().size()
+                != questions.size()) {
+
+            throw new RuntimeException(
+                    "AI evaluation returned an invalid or incomplete report");
         }
 
+        // Persist only the overall score, as in your existing design.
         InterviewResult result = new InterviewResult();
+
         result.setInterviewId(interviewId);
-        result.setOverallScore(evaluation.getOverallScore());
+        result.setOverallScore(BigDecimal.valueOf(evaluation.getOverallScore()));
         result.setEvaluatedAt(LocalDateTime.now());
 
         interviewResultRepository.save(result);
@@ -430,8 +441,12 @@ public class InterviewServiceImpl implements InterviewService {
         interview.setStatus(InterviewStatus.COMPLETED);
         interviewRepository.save(interview);
 
+        // Return the report before removing temporary conversation data.
         interviewRedisService.deleteContext(interviewId);
+
+        return evaluation;
     }
+
 
 
 }

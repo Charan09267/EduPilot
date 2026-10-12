@@ -1,5 +1,6 @@
 package net.edupilot.mockinterviewservice.service.interfaces;
 
+import net.edupilot.mockinterviewservice.dto.ai.EvaluationResponse;
 import net.edupilot.mockinterviewservice.dto.request.CreateInterviewRequest;
 import net.edupilot.mockinterviewservice.dto.request.SubmitAnswerRequest;
 import net.edupilot.mockinterviewservice.dto.response.*;
@@ -22,5 +23,5 @@ public interface InterviewService {
 
     InterviewResultResponse getInterviewResult(Long interviewId);
 
-    void evaluateInterview(Long interviewId);
+    EvaluationResponse evaluateInterview(Long interviewId);
 }

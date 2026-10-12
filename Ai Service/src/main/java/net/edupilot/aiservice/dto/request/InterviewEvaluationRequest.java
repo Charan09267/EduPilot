@@ -1,9 +1,8 @@
-package net.edupilot.aiservice.dto;
+package net.edupilot.aiservice.dto.request;
 
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotEmpty;
 import lombok.Data;
+import net.edupilot.aiservice.dto.InterviewQuestionAnswer;
 
 import java.util.List;
 

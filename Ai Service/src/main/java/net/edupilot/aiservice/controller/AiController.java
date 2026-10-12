@@ -1,17 +1,11 @@
 package net.edupilot.aiservice.controller;
 
 import jakarta.validation.Valid;
-import net.edupilot.aiservice.dto.InterviewEvaluationRequest;
-import net.edupilot.aiservice.dto.InterviewEvaluationResponse;
-import net.edupilot.aiservice.dto.InterviewGenerationRequest;
-import net.edupilot.aiservice.dto.InterviewGenerationResponse;
+import net.edupilot.aiservice.dto.request.InterviewEvaluationRequest;
+import net.edupilot.aiservice.dto.response.InterviewEvaluationResponse;
 import net.edupilot.aiservice.service.InterviewEvaluationService;
 import net.edupilot.aiservice.service.InterviewServiceImpl;
-import net.edupilot.aiservice.service.InterviewServiceImpl;
-import net.edupilot.aiservice.service.OllamaService;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.Map;
 
 @RestController
 @RequestMapping("/ai")

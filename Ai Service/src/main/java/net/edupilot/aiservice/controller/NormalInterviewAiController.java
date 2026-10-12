@@ -2,11 +2,10 @@ package net.edupilot.aiservice.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import net.edupilot.aiservice.dto.InitialQuestionRequest;
-import net.edupilot.aiservice.dto.InitialQuestionResponse;
-import net.edupilot.aiservice.dto.NextQuestionRequest;
-import net.edupilot.aiservice.dto.NextQuestionResponse;
-import net.edupilot.aiservice.service.InitialQuestionService;
+import net.edupilot.aiservice.dto.request.InitialQuestionRequest;
+import net.edupilot.aiservice.dto.response.InitialQuestionResponse;
+import net.edupilot.aiservice.dto.request.NextQuestionRequest;
+import net.edupilot.aiservice.dto.response.NextQuestionResponse;
 import net.edupilot.aiservice.service.InterviewServiceImpl;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;

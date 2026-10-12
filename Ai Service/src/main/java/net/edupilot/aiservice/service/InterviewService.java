@@ -1,9 +1,9 @@
 package net.edupilot.aiservice.service;
 
-import net.edupilot.aiservice.dto.InitialQuestionRequest;
-import net.edupilot.aiservice.dto.InitialQuestionResponse;
-import net.edupilot.aiservice.dto.NextQuestionRequest;
-import net.edupilot.aiservice.dto.NextQuestionResponse;
+import net.edupilot.aiservice.dto.request.InitialQuestionRequest;
+import net.edupilot.aiservice.dto.response.InitialQuestionResponse;
+import net.edupilot.aiservice.dto.request.NextQuestionRequest;
+import net.edupilot.aiservice.dto.response.NextQuestionResponse;
 
 public interface InterviewService {
     public InitialQuestionResponse generateInitialQuestion(

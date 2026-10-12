@@ -1,4 +1,4 @@
-package net.edupilot.aiservice.dto;
+package net.edupilot.aiservice.dto.request;
 
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;

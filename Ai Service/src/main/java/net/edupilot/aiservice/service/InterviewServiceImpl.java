@@ -1,7 +1,10 @@
 package net.edupilot.aiservice.service;
 
 import lombok.RequiredArgsConstructor;
-import net.edupilot.aiservice.dto.*;
+import net.edupilot.aiservice.dto.request.InitialQuestionRequest;
+import net.edupilot.aiservice.dto.request.NextQuestionRequest;
+import net.edupilot.aiservice.dto.response.InitialQuestionResponse;
+import net.edupilot.aiservice.dto.response.NextQuestionResponse;
 import net.edupilot.aiservice.exception.AiServiceException;
 import net.edupilot.aiservice.prompt.InitialQuestionPromptBuilder;
 import net.edupilot.aiservice.prompt.InterviewGenerationPromptBuilder;

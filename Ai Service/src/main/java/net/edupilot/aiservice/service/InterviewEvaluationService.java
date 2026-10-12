@@ -1,12 +1,11 @@
 package net.edupilot.aiservice.service;
 
 import lombok.RequiredArgsConstructor;
-import net.edupilot.aiservice.dto.InterviewEvaluationRequest;
-import net.edupilot.aiservice.dto.InterviewEvaluationResponse;
+import net.edupilot.aiservice.dto.request.InterviewEvaluationRequest;
+import net.edupilot.aiservice.dto.response.InterviewEvaluationResponse;
 import net.edupilot.aiservice.exception.AiServiceException;
 import net.edupilot.aiservice.prompt.InterviewEvaluationPromptBuilder;
 import org.springframework.ai.chat.client.ChatClient;
-import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -15,6 +14,7 @@ public class InterviewEvaluationService {
 
     private final ChatClient chatClient;
     private final InterviewEvaluationPromptBuilder promptBuilder;
+
 
     public InterviewEvaluationResponse evaluateInterview(
             InterviewEvaluationRequest request) {
@@ -35,4 +35,5 @@ public class InterviewEvaluationService {
             );
         }
     }
+
 }

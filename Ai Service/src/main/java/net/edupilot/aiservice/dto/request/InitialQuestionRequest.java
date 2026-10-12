@@ -1,4 +1,4 @@
-package net.edupilot.aiservice.dto;
+package net.edupilot.aiservice.dto.request;
 
 import lombok.Getter;
 import lombok.Setter;

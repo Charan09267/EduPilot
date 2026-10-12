@@ -1,7 +1,6 @@
 package net.edupilot.aiservice.prompt;
 
-import net.edupilot.aiservice.dto.InitialQuestionRequest;
-import net.edupilot.aiservice.dto.NextQuestionRequest;
+import net.edupilot.aiservice.dto.request.InitialQuestionRequest;
 import org.springframework.stereotype.Component;
 
 @Component
